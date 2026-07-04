@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0D1F2D">
+<title>ערבית רפואית — מד"א 101</title>
+<link rel="manifest" href="manifest.json">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --navy: #0D1F2D;
+  --red:  #C8102E;
+  --ar:   #0D4A6B;
+  --bg:   #F0F4F6;
+  --card: #FFFFFF;
+  --border: #D0DCE2;
+  --tr:   #5A6E7A;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--navy);
+  overscroll-behavior: none;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--navy);
+  padding: 12px 14px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.badge {
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.header h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── SEARCH BOX ── */
+.search-wrap {
+  position: relative;
+}
+.search-box {
+  width: 100%;
+  padding: 11px 40px 11px 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1A3346;
+  color: #fff;
+  outline: none;
+  direction: rtl;
+}
+.search-box::placeholder { color: #6A8A9A; }
+.clear-btn {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6A8A9A;
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  padding: 4px;
+}
+
+/* ── RESULTS COUNT ── */
+.results-bar {
+  padding: 8px 14px 4px;
+  font-size: 12px;
+  color: var(--tr);
+  min-height: 28px;
+}
+
+/* ── CARDS ── */
+.list {
+  padding: 0 10px 80px;
+}
+.card {
+  background: var(--card);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.card-he {
+  padding: 10px 12px 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy);
+  border-bottom: 1px solid var(--border);
+}
+.card-bottom {
+  display: flex;
+  align-items: center;
+  padding: 8px 8px 8px 12px;
+  gap: 8px;
+}
+.card-ar {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ar);
+  direction: rtl;
+  line-height: 1.4;
+}
+.card-tr {
+  font-size: 12px;
+  color: var(--tr);
+  font-style: italic;
+  padding: 0 12px 8px;
+}
+
+/* ── SPEAK BUTTON ── */
+.speak-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--ar);
+  background: none;
+  color: var(--ar);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+}
+.speak-btn.playing {
+  background: var(--ar);
+  color: #fff;
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--tr);
+}
+.empty .icon { font-size: 40px; margin-bottom: 12px; }
+.empty p { font-size: 15px; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 0.5px;
+  padding: 14px 12px 4px;
+  text-transform: uppercase;
+}
+
+/* ── INITIAL STATE (no search) ── */
+.sections-nav {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.section-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.section-btn .arrow { color: var(--tr); font-size: 13px; }
+.section-btn .count { font-size: 12px; color: var(--tr); font-weight: 400; }
+
+/* ── SECTION VIEW ── */
+.back-btn {
+  background: none;
+  border: none;
+  color: #8AAABB;
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  text-align: right;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="badge">101</span>
+    <h1>ערבית רפואית מדוברת</h1>
+  </div>
+  <div class="search-wrap">
+    <input class="search-box" id="search" type="search" placeholder="חיפוש בעברית... (כאב, נשימה, מיקום...)" autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="clear-btn" id="clearBtn" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<div class="results-bar" id="resultsBar"></div>
+<div id="mainContent"></div>
+
+<!-- Hidden audio for TTS -->
+<audio id="ttsAudio"></audio>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const SECTIONS = [
+  { id:'s1', name:'פתיחת שיחת חירום', phrases:[
+    { he:'מד"א 101, שלום.', ar:'إسعاف مية وواحد، أهلين.', tr:'אסעאף מיה וואחד, אהלין.' },
+    { he:'איך אפשר לעזור?', ar:'كيف بقدر أساعدك؟', tr:'כיף בקדר אסאעדכ?' },
+    { he:'מה קרה?', ar:'شو صار؟', tr:'שו צאר?' },
+    { he:'תרגע, אני כאן איתך.', ar:'اهدى، أنا معك هون.', tr:'אהדא, אנא מעכ הון.' },
+    { he:'תרגע חביבי, האמבולנס כבר בדרך אליך.', ar:'اهدى يا حبيبي، سيارة الإسعاف بالطريق إلك.', tr:'אהדא יא חביבי, סיארת אלאסעאף בטריק אילכ.' },
+    { he:'אני חייב להבין מה המצב כדי שנוכל לעזור.', ar:'لازم أفهم شو الوضع تماماً حتى نقدر نساعد.', tr:'לאזם אפהם שו אלוצ׳ע תמאמן חתא נקדר נסאעד.' },
+    { he:'אל תנתק, תישאר על הקו.', ar:'لا تسكر التلفون، خليك معي.', tr:'לא תסכר אלתלפון, חליכ מעי.' },
+    { he:'אני נשאר איתך על הקו.', ar:'أنا باقي معك على الخط.', tr:'אנא באקי מעכ עלא אלח׳ט.' },
+    { he:'תקשיב לי טוב.', ar:'اسمعني منيح.', tr:'אסמעני מניח.' },
+    { he:'תענה לי רק על מה שאני שואל.', ar:'جاوبني بس على إللي بسألك عنه.', tr:'ג׳אובני בס עלא אילי בסאלכ ענה.' },
+    { he:'דבר לאט בבקשה.', ar:'احكي شوي شوي لو سمحت.', tr:'אחכי שוי שוי לו סמחת.' },
+    { he:'אני לא הבנתי, תחזור בבקשה.', ar:'ما فهمت، ممكن تكرر لو سمحت؟', tr:'מא פהמת, ממכן תכרר לו סמחת?' },
+    { he:'אני שולח לך אמבולנס עכשיו.', ar:'هلق عم أبعتلك سيارة إسعاف.', tr:'הלק עם אבעתלכ סיארת אסעאף.' },
+    { he:'אל תפחד, אני אסביר לך כל שלב.', ar:'لا تخاف، رح أشرحلك كل خطوة.', tr:'לא תח׳אף, רח אשרחלכ כל ח׳טוה.' },
+    { he:'אני יודע שזה מפחיד, אבל אני איתך.', ar:'بعرف إنه الموضوع مرعب، بس أنا معك.', tr:'בערף אנה אלמוצ׳וע מרעב, בס אנא מעכ.' },
+    { he:'מי איתך עוד שם?', ar:'مين معك كمان هناك؟', tr:'מין מעכ כמאן הנאכ?' },
+    { he:'אתה לבד או יש מישהו לעזור?', ar:'إنت لحالك ولا في حدا يساعدك؟', tr:'אינת לחאלכ ולא פי חדא יסאעדכ?' },
+    { he:'אל תזוז מהטלפון.', ar:'لا تتحرك من التلفون.', tr:'לא תתחרכ מן אלתלפון.' },
+    { he:'אתה עושה עבודה טובה, תמשיך כך.', ar:'عم تعمل منيح، خليك هيك.', tr:'עם תעמל מניח, חליכ היכ.' },
+    { he:'תישאר רגוע, אני צריך אותך מרוכז.', ar:'خليك هادي، بحتاجك مركز معي.', tr:'ח׳ליכ האדי, בחתאג׳כ מרכז מעי.' },
+  ]},
+  { id:'s2', name:'קבלת פרטים ומיקום', phrases:[
+    { he:'איך קוראים לך?', ar:'شو اسمك؟', tr:'שו אסמכ?' },
+    { he:'בן כמה אתה?', ar:'قديش عمرك؟', tr:'קדיש עמרכ?' },
+    { he:'בן כמה הוא?', ar:'قديش عمره؟', tr:'קדיש עמרה?' },
+    { he:'בערך בן כמה הוא נראה לך?', ar:'تقريباً قديش بيبين عليه عمره؟', tr:'תקריבן קדיש ביביין עליה עמרה?' },
+    { he:'איפה אתה נמצא עכשיו?', ar:'وين إنت موجود هلق؟', tr:'וין אינת מוג׳וד הלק?' },
+    { he:'איפה הוא נמצא?', ar:'وين هو موجود؟', tr:'וין הווא מוג׳וד?' },
+    { he:'באיזה יישוב אתה?', ar:'بأي بلد إنت؟', tr:'באי בלד אינת?' },
+    { he:'ליד איזה יישוב אתה בערך?', ar:'حوالي أي بلد إنت تقريباً؟', tr:'חוואלי אי בלד אינת תקריבן?' },
+    { he:'באיזו שכונה?', ar:'بأي حي؟', tr:'באי חיי?' },
+    { he:'מה שם הרחוב?', ar:'شو اسم الشارع؟', tr:'שו אסם אלשארע?' },
+    { he:'מה מספר הבית?', ar:'شو رقم البيت؟', tr:'שו רקם אלבית?' },
+    { he:'באיזו קומה?', ar:'بأي طابق؟', tr:'באי טאבק?' },
+    { he:'מה מספר הדירה?', ar:'شو رقم الشقة؟', tr:'שו רקם אלשקה?' },
+    { he:'יש לידך סימן מובהק, כמו מסגד או בית ספר?', ar:'في حدا حدك علامة واضحة، مثل جامع أو مدرسة؟', tr:'פי חדא חדכ עלאמה ואצ׳חה, מתל ג׳אמע או מדרסה?' },
+    { he:'אפשר שתשלח לי מיקום?', ar:'ممكن ترسلي الموقع؟', tr:'ממכן תרסללי אלמוקע?' },
+    { he:'תוכל לשלוח לי את זה בוואטסאפ?', ar:'بتقدر تبعتلي إياه على الواتساب؟', tr:'בתקדר תבעתלי איאה עלא אלוואטסאפ?' },
+    { he:'יש מישהו שיכול לצאת לכוון את האמבולנס?', ar:'في حدا يقدر يطلع برا يوجّه سيارة الإسعاف؟', tr:'פי חדא יקדר יטלע ברא יווג׳ה סיארת אלאסעאף?' },
+  ]},
+  { id:'s3', name:'תשאול רפואי כללי', phrases:[
+    { he:'מה קרה בדיוק?', ar:'شو صار بالضبط؟', tr:'שו צאר באלצ׳בט?' },
+    { he:'מתי זה קרה?', ar:'إيمتى صار هذا الشي؟', tr:'אימתא צאר האד׳א אלשי?' },
+    { he:'מה הוא מרגיש עכשיו?', ar:'شو حاسس هلق؟', tr:'שו חאסס הלק?' },
+    { he:'איפה כואב לו?', ar:'وين بيوجعه؟', tr:'וין ביוג׳עה?' },
+    { he:'הכאב חזק?', ar:'الألم قوي؟', tr:'אלאלם קווי?' },
+    { he:'הכאב מתפשט למקום אחר?', ar:'الألم عم يمتد لمكان تاني؟', tr:'אלאלם עם ימתד למכאן תאני?' },
+    { he:'יש לו חום?', ar:'في عنده حرارة؟', tr:'פי ענדה חרארה?' },
+    { he:'יש דימום?', ar:'في نزيف؟', tr:'פי נזיף?' },
+    { he:'מאיפה הדימום?', ar:'النزيف من وين؟', tr:'אלנזיף מן וין?' },
+    { he:'כמה נפגעים יש?', ar:'قديش عدد المصابين؟', tr:'קדיש עדד אלמצאבין?' },
+    { he:'יש סכנה במקום?', ar:'في خطر بالمكان؟', tr:'פי ח׳טר באלמכאן?' },
+    { he:'הוא מדבר אליך?', ar:'هو عم يحكي معك؟', tr:'הווא עם יחכי מעכ?' },
+    { he:'הוא מגיב כשאתה קורא לו?', ar:'هو بيستجيب لما تنده عليه؟', tr:'הווא ביסתג׳יב למא תנדה עליה?' },
+    { he:'הוא מצליח לעמוד?', ar:'هو قادر يقف؟', tr:'הווא קאדר יוקף?' },
+    { he:'הוא מצליח ללכת?', ar:'هو قادر يمشي؟', tr:'הווא קאדר ימשי?' },
+    { he:'יש לו מחלות רקע?', ar:'في عنده أمراض سابقة؟', tr:'פי ענדה אמראד׳ סאבקה?' },
+    { he:'הוא לוקח תרופות באופן קבוע?', ar:'هو بياخد أدوية بشكل دائم؟', tr:'הווא ביאח׳ד אדוויה בשכל דאאם?' },
+    { he:'יש לו אלרגיות?', ar:'في عنده حساسية من شي؟', tr:'פי ענדה חסאסיה מן שי?' },
+    { he:'היא בהריון?', ar:'هي حامل؟', tr:'היא חאמל?' },
+    { he:'תוכל לבדוק את הדופק שלו?', ar:'بتقدر تتحقق من نبضه؟', tr:'בתקדר תתחקק מן נבצ׳ה?' },
+  ]},
+  { id:'s4', name:'חוסר הכרה', phrases:[
+    { he:'הוא בהכרה?', ar:'هو واعي؟', tr:'הווא וואעי?' },
+    { he:'הוא ער לגמרי?', ar:'هو صاحي مية بالمية؟', tr:'הווא צאחי מיה באלמיה?' },
+    { he:'תנסה לדבר אליו בקול חזק.', ar:'حاول تحكي معه بصوت عالي.', tr:'חאוול תחכי מעה בצות עאלי.' },
+    { he:'תנסה להעיר אותו.', ar:'حاول تصحّيه.', tr:'חאוול תצחיה.' },
+    { he:'תצבוט אותו ביד ותראה אם הוא מגיב.', ar:'قرصه بإيده وشوف إذا بيستجيب.', tr:'קרצה ביידה ושוף אד׳א ביסתג׳יב.' },
+    { he:'הוא פוקח עיניים?', ar:'هو فاتح عيونه؟', tr:'הווא פאתח עיונה?' },
+    { he:'הוא מזיז ידיים או רגליים?', ar:'هو عم يحرك إيديه أو إجريه؟', tr:'הווא עם יחרכ אידיה או אג׳ריה?' },
+    { he:'הוא נושם?', ar:'هو بتنفس؟', tr:'הווא בתנפס?' },
+    { he:'תסתכל אם בית החזה שלו עולה ויורד.', ar:'تأكد إذا صدره طالع ونازل.', tr:'תאכד אד׳א צדרה טאלע ונאזל.' },
+    { he:'שים את האוזן קרוב לפה שלו ותקשיב.', ar:'قرّب وذنك من تمه واسمع.', tr:'קרב וד׳נכ מן תמה ואסמע.' },
+    { he:'שים את הטלפון על רמקול.', ar:'حط التلفون على سماعة.', tr:'חט אלתלפון עלא סמאעה.' },
+    { he:'אני הולך להסביר לך מה לעשות, שלב אחר שלב.', ar:'رح أشرحلك شو تعمل، خطوة خطوة.', tr:'רח אשרחלכ שו תעמל, ח׳טוה ח׳טוה.' },
+    { he:'תשכב אותו על הצד אם הוא נושם לבד.', ar:'نوّمه على جنبه إذا عم يتنفس لحاله.', tr:'נוומה עלא ג׳נבה אד׳א עם יתנפס לחאלה.' },
+    { he:'אל תזיז אותו אם יש חשד לפגיעה בעמוד שדרה.', ar:'لا تحركه إذا في شك بإصابة بالعمود الفقري.', tr:'לא תחרכה אד׳א פי שכ באצאבה באלעמוד אלפקרי.' },
+  ]},
+  { id:'s5', name:'הדרכת החייאה — CPR', phrases:[
+    { he:'תשכיב אותו על הגב.', ar:'نوّمه على ظهره.', tr:'נוומה עלא ט׳הרה.' },
+    { he:'שים אותו על משטח קשה, לא על מיטה רכה.', ar:'حطه على سطح قاسي، مش على فرشة طرية.', tr:'חטה עלא סטח קאסי, מש עלא פרשה טריה.' },
+    { he:'תכרע לידו, קרוב לבית החזה.', ar:'اركع جنبه، قريب من صدره.', tr:'ארכע ג׳נבה, קריב מן צדרה.' },
+    { he:'שים את שתי הידיים במרכז בית החזה.', ar:'حط إيديك الاثنين في نص الصدر.', tr:'חט אידיכ אלאתנין פי נצ אלצדר.' },
+    { he:'שלב יד אחת על השנייה.', ar:'شابك إيد على التانية.', tr:'שאבכ איד עלא אלתאניה.' },
+    { he:'תלחץ חזק, עד עומק של חמישה סנטימטר.', ar:'اضغط بقوة، لعمق حوالي خمس سنتيمتر.', tr:'אצ׳ע׳ט בקווה, לעמק חוואלי ח׳מס סנתימתר.' },
+    { he:'תלחץ מהר, כמו הקצב של שיר.', ar:'اضغط بسرعة، مثل تكت أغنية.', tr:'אצ׳ע׳ט בסרעה, מתל תכת אע׳ניה.' },
+    { he:'אל תפסיק, תמשיך כל הזמן.', ar:'لا توقف، استمر طول الوقت.', tr:'לא תווקף, אסתמר טול אלווקת.' },
+    { he:'תן לבית החזה לחזור למקום בין לחיצה ללחיצה.', ar:'خلي الصدر يرجع لمكانه بين ضغطة وضغطة.', tr:'ח׳לי אלצדר ירג׳ע למכאנה בין צ׳ע׳טה וצ׳ע׳טה.' },
+    { he:'אני סופר איתך — אחת, שתיים, שלוש...', ar:'رح عدّ معك — وحدة، اثنين، ثلاثة...', tr:'רח עד מעכ — וואחדה, אתנין, תלאתה...' },
+    { he:'אם הוא מתחיל לנשום, תגיד לי מיד.', ar:'إذا بلّش يتنفس، قول لي على طول.', tr:'אד׳א בלש יתנפס, קול לי עלא טול.' },
+    { he:'יש במקום מכשיר AED — דפיברילטור?', ar:'في عندكم جهاز صعق، AED؟', tr:'פי ענדכם ג׳האז צעק, AED?' },
+    { he:'אם יש מכשיר, תביא אותו עכשיו ותפתח אותו.', ar:'إذا في جهاز، جيبه هلق وافتحه.', tr:'אד׳א פי ג׳האז, ג׳יבה הלק ואפתחה.' },
+    { he:'תחליפו ביניכם כל שתי דקות.', ar:'بدّلوا مع بعض كل دقيقتين.', tr:'בדלו מע בעצ׳ כל דקיקתין.' },
+    { he:'אל תעצור אפילו אם אתה מתעייף.', ar:'لا توقف حتى لو تعبت.', tr:'לא תווקף חתא לו תעבת.' },
+  ]},
+  { id:'s6', name:'אנפילקסיס', phrases:[
+    { he:'הוא אלרגי למשהו?', ar:'هو حساسية من شي؟', tr:'הווא חסאסיה מן שי?' },
+    { he:'למה הוא אלרגי, אם אתה יודע?', ar:'حساسية من إيش، إذا بتعرف؟', tr:'חסאסיה מן איש, אד׳א בתערף?' },
+    { he:'הוא אכל משהו לפני זה?', ar:'هو أكل شي قبل هذا الشي؟', tr:'הווא אכל שי קבל האד׳א אלשי?' },
+    { he:'עקצה אותו דבורה או חרק?', ar:'لسعته نحلة أو حشرة؟', tr:'לסעתה נחלה או חשרה?' },
+    { he:'יש לו נפיחות בפנים?', ar:'في عنده تورّم بوجهه؟', tr:'פי ענדה תוורם בוג׳הה?' },
+    { he:'יש לו נפיחות בלשון?', ar:'في عنده تورّم بلسانه؟', tr:'פי ענדה תוורם בלסאנה?' },
+    { he:'יש לו נפיחות בשפתיים?', ar:'في عنده تورّم بشفافه؟', tr:'פי ענדה תוורם בשפאפה?' },
+    { he:'קשה לו לנשום?', ar:'صعب عليه يتنفس؟', tr:'צעב עליה יתנפס?' },
+    { he:'יש לו צפצופים כשהוא נושם?', ar:'في عنده صفير لما يتنفس؟', tr:'פי ענדה צפיר למא יתנפס?' },
+    { he:'יש לו אפיפן?', ar:'في عنده إيبيبن؟', tr:'פי ענדה איביפן?' },
+    { he:'איפה האפיפן נמצא?', ar:'وين موجود الإيبيبن؟', tr:'וין מוג׳וד אלאיביפן?' },
+    { he:'תוריד את הפקק הצהוב ותחזיק חזק בכף היד.', ar:'شيل الغطا الأصفر وامسكه بقوة بكف الإيد.', tr:'שיל אלע׳טא אלאצפר ואמסכה בקווה בכף אלאיד.' },
+    { he:'תדחוף אותו חזק בירך, באמצע מבחוץ.', ar:'اضغطه بقوة على الفخد، بالنص من برا.', tr:'אצ׳ע׳טה בקווה עלא אלפח׳ד, באלנצ מן ברא.' },
+  ]},
+  { id:'s7', name:'כאבים בחזה', phrases:[
+    { he:'הכאב בחזה מרגיש כמו לחיצה?', ar:'الألم بالصدر حاسسه مثل ضغط؟', tr:'אלאלם באלצדר חאססה מתל צ׳ע׳ט?' },
+    { he:'הכאב שורף או לוחץ?', ar:'الألم حارق ولا ضاغط؟', tr:'אלאלם חארק ולא צ׳אע׳ט?' },
+    { he:'הכאב מקרין ליד שמאל, לגב, או לצוואר?', ar:'الألم رايح للإيد الشمال، أو الظهر، أو الرقبة؟', tr:'אלאלם ראיח לאיד אלשמאל, או אלט׳הר, או אלרקבה?' },
+    { he:'הוא מזיע הרבה?', ar:'هو عرقان كتير؟', tr:'הווא ערקאן כתיר?' },
+    { he:'יש לו קוצר נשימה?', ar:'في عنده ضيق نفس؟', tr:'פי ענדה צ׳יק נפס?' },
+    { he:'כמה זמן הכאב נמשך?', ar:'قديش وقت من بدأ الألم؟', tr:'קדיש וקת מן בדא אלאלם?' },
+    { he:'הכאב מגיע ועובר, או נשאר קבוע?', ar:'الألم بيجي ويروح، ولا ثابت طول الوقت؟', tr:'אלאלם ביג׳י ויירוח, ולא ת׳אבת טול אלווקת?' },
+    { he:'יש לו תחת הלשון תרופה כמו ניטרו?', ar:'في عنده دواء تحت اللسان مثل نيترو؟', tr:'פי ענדה דווא תחת אללסאן מתל ניתרו?' },
+    { he:'תן לו לשבת או לשכב, איך שנוח לו.', ar:'خليه يقعد أو يستلقي، أي وضعية أرتح له.', tr:'ח׳ליה יקעד או יסתלקי, אי וצ׳עיה ארתח לה.' },
+  ]},
+  { id:'s8', name:'שבץ מוחי', phrases:[
+    { he:'הוא מצליח לדבר בצורה ברורה?', ar:'هو قادر يحكي منيح وواضح؟', tr:'הווא קאדר יחכי מניח וואצ׳ח?' },
+    { he:'הדיבור שלו מבולבל או מקוטע?', ar:'حكيه مشوّش أو مقطّع؟', tr:'חכיה משווש או מקטע?' },
+    { he:'תבקש ממנו לחייך — החיוך עקום?', ar:'اطلب منه يضحك — الضحكة معوجة؟', tr:'אטלב מנה יצ׳חכ — אלצ׳חכה מעוג׳ה?' },
+    { he:'תבקש ממנו להרים את שתי הידיים.', ar:'اطلب منه يرفع إيديه الاثنين.', tr:'אטלב מנה ירפע אידיה אלאתנין.' },
+    { he:'יד אחת נופלת או נשארת חלשה יותר?', ar:'إيد وحدة عم تنزل أو ضعيفة أكتر؟', tr:'איד וואחדה עם תנזל או צ׳עיפה אכתר?' },
+    { he:'הפנים שלו נראות עקומות בצד אחד?', ar:'وجهه شكله معوج من جهة واحدة؟', tr:'וג׳הה שכלה מעווג׳ מן ג׳יהה וואחדה?' },
+    { he:'מתי בדיוק התחילו התסמינים?', ar:'إيمتى بالضبط بلّشت الأعراض؟', tr:'אימתא באלצ׳בט בלשת אלאעראצ׳?' },
+    { he:'הוא היה תקין לפני כמה זמן בערך?', ar:'كان منيح قبل قديش من وقت تقريباً؟', tr:'כאן מניח קבל קדיש מן וקת תקריבן?' },
+    { he:'אל תיתן לו לאכול או לשתות.', ar:'لا تعطيه يأكل أو يشرب.', tr:'לא תעטיה יאכל או ישרב.' },
+  ]},
+  { id:'s9', name:'טראומה', phrases:[
+    { he:'הוא נפל?', ar:'هو وقع؟', tr:'הווא וקע?' },
+    { he:'מאיזה גובה הוא נפל בערך?', ar:'من أي ارتفاع وقع تقريباً؟', tr:'מן אי ארתפאע וקע תקריבן?' },
+    { he:'יש דימום, ומאיפה?', ar:'في نزيف، ومن وين؟', tr:'פי נזיף, ומן וין?' },
+    { he:'הדימום חזק או קל?', ar:'النزيف قوي ولا خفيف؟', tr:'אלנזיף קווי ולא ח׳פיף?' },
+    { he:'תפעיל לחץ ישיר עם בד נקי על מקום הדימום.', ar:'اعمل ضغط مباشر بقطعة قماش نظيفة على مكان النزيف.', tr:'אעמל צ׳ע׳ט מבאשר בקטעת קמאש נט׳יפה עלא מכאן אלנזיף.' },
+    { he:'יש חשד לשבר?', ar:'في شك بكسر؟', tr:'פי שכ בכסר?' },
+    { he:'האיבר נראה עקום או במקום לא טבעי?', ar:'العضو شكله ملتوي أو بوضعية غير طبيعية؟', tr:'אלעצ׳ו שכלה מלתווי או בוצ׳עיה ע׳יר טביעיה?' },
+    { he:'אל תזיז את האיבר הפגוע.', ar:'لا تحرك العضو المصاب.', tr:'לא תחרכ אלעצ׳ו אלמצאב.' },
+    { he:'הוא לכוד או אפשר לזוז אותו?', ar:'هو محشور ولا ممكن نحركه؟', tr:'הווא מחשור ולא ממכן נחרכה?' },
+    { he:'זאת תאונת דרכים?', ar:'هذا حادث سيارة؟', tr:'האד׳א חאדת׳ סיארה?' },
+    { he:'כמה רכבים מעורבים?', ar:'قديش عدد السيارات بالحادث؟', tr:'קדיש עדד אלסיארת באלחאדת׳?' },
+    { he:'מישהו לכוד ברכב?', ar:'في حدا محشور بالسيارة؟', tr:'פי חדא מחשור באלסיארה?' },
+  ]},
+  { id:'s10', name:'משפטי הרגעה', phrases:[
+    { he:'אני איתך.', ar:'أنا معك.', tr:'אנא מעכ.' },
+    { he:'אני לא עוזב אותך.', ar:'ما رح أسيبك.', tr:'מא רח אסיבכ.' },
+    { he:'האמבולנס כבר בדרך.', ar:'سيارة الإسعاف بالطريق.', tr:'סיארת אלאסעאף בטריק.' },
+    { he:'עוד כמה דקות והם מגיעים.', ar:'كمان شوي دقايق ورح يوصلوا.', tr:'כמאן שוי דקאיק ורח יווצלו.' },
+    { he:'אתה עוזר לו מאוד עכשיו.', ar:'إنت عم تساعده كتير هلق.', tr:'אינת עם תסאעדה כתיר הלק.' },
+    { he:'תמשיך ככה, אתה עושה את זה נכון.', ar:'خليك هيك، عم تعمل الشي صحيح.', tr:'ח׳ליכ היכ, עם תעמל אלשי צחיח.' },
+    { he:'תישאר רגוע, זה עוזר לו.', ar:'خليك هادي، هذا بيساعده.', tr:'ח׳ליכ האדי, האד׳א ביסאעדה.' },
+    { he:'אני יודע שזה מלחיץ, זה טבעי.', ar:'بعرف إنه الوضع متوتر، هذا طبيعي.', tr:'בערף אנה אלוצ׳ע מתוותר, האד׳א טביעי.' },
+    { he:'ביחד אנחנו נעזור לו.', ar:'مع بعض رح نساعده.', tr:'מע בעצ׳ רח נסאעדה.' },
+    { he:'אתה לא לבד בזה.', ar:'إنت مش لحالك بهذا الموضوع.', tr:'אינת מש לחאלכ בהאד׳א אלמוצ׳וע.' },
+    { he:'הצוות שלנו מקצועי ויודע מה לעשות.', ar:'الطاقم عندنا محترف وبيعرف شو يعمل.', tr:'אלטאקם ענדנא מחתרף וביערף שו יעמל.' },
+    { he:'תנשום עמוק, גם אתה.', ar:'تنفس بعمق، إنت كمان.', tr:'תנפס בעמק, אינת כמאן.' },
+    { he:'אתה עושה הכל נכון.', ar:'إنت عم تعمل كل شي صحيح.', tr:'אינת עם תעמל כל שי צחיח.' },
+    { he:'תחזיק מעמד, אנחנו כבר כאן.', ar:'استحمل شوي، نحنا هلق هون.', tr:'אסתחמל שוי, נחנא הלק הון.' },
+    { he:'הכל יהיה בסדר, תישאר איתי.', ar:'كل شي رح يكون منيح، خليك معي.', tr:'כל שי רח יכון מניח, ח׳ליכ מעי.' },
+  ]},
+];
+
+// Flatten all phrases with section info
+const ALL = [];
+SECTIONS.forEach(s => s.phrases.forEach(p => ALL.push({ ...p, section: s.name })));
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentAudio = null;
+let currentBtn   = null;
+let activeSection = null; // null = home
+
+// ═══════════════════════════════════════
+// TTS — Google Translate via new tab trick
+// Since we're on file://, we open a mini popup that auto-closes
+// ═══════════════════════════════════════
+function ttsUrl(text) {
+  return 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=' + encodeURIComponent(text);
+}
+
+function playAr(text, btn) {
+  // Stop current
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  if (currentBtn && currentBtn !== btn) {
+    currentBtn.classList.remove('playing');
+    currentBtn.textContent = '🔊';
+  }
+
+  // Toggle off
+  if (currentBtn === btn) {
+    currentBtn.classList.remove('playing');
+    currentBtn.textContent = '🔊';
+    currentBtn = null;
+    return;
+  }
+
+  btn.classList.add('playing');
+  btn.textContent = '⏹';
+  currentBtn = btn;
+
+  const audio = new Audio(ttsUrl(text));
+  currentAudio = audio;
+
+  audio.onended = () => {
+    btn.classList.remove('playing');
+    btn.textContent = '🔊';
+    if (currentBtn === btn) currentBtn = null;
+    currentAudio = null;
+  };
+  audio.onerror = () => {
+    // Fallback: open in background tab
+    btn.classList.remove('playing');
+    btn.textContent = '🔊';
+    if (currentBtn === btn) currentBtn = null;
+    currentAudio = null;
+    window.open(ttsUrl(text), '_blank');
+  };
+
+  audio.play().catch(() => {
+    btn.classList.remove('playing');
+    btn.textContent = '🔊';
+    currentBtn = null;
+    currentAudio = null;
+    window.open(ttsUrl(text), '_blank');
+  });
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function phraseCard(p, showSection) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    ${showSection ? `<div class="section-label">${p.section}</div>` : ''}
+    <div class="card-he">${p.he}</div>
+    <div class="card-bottom">
+      <div class="card-ar">${p.ar}</div>
+      <button class="speak-btn" aria-label="השמע">🔊</button>
+    </div>
+    <div class="card-tr">${p.tr}</div>
+  `;
+  div.querySelector('.speak-btn').addEventListener('click', function() {
+    playAr(p.ar, this);
+  });
+  return div;
+}
+
+function renderHome() {
+  activeSection = null;
+  document.getElementById('resultsBar').textContent = '';
+  const c = document.getElementById('mainContent');
+  c.innerHTML = '';
+  const nav = document.createElement('div');
+  nav.className = 'sections-nav';
+  SECTIONS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'section-btn';
+    btn.innerHTML = `<span>${s.name}</span><span><span class="count">${s.phrases.length} משפטים</span> ›</span>`;
+    btn.addEventListener('click', () => renderSection(s));
+    nav.appendChild(btn);
+  });
+  c.appendChild(nav);
+}
+
+function renderSection(s) {
+  activeSection = s;
+  document.getElementById('resultsBar').textContent = '';
+  const c = document.getElementById('mainContent');
+  c.innerHTML = '';
+
+  const back = document.createElement('button');
+  back.className = 'back-btn';
+  back.innerHTML = '‹ חזרה לרשימה';
+  back.addEventListener('click', () => {
+    document.getElementById('search').value = '';
+    document.getElementById('clearBtn').style.display = 'none';
+    renderHome();
+  });
+  c.appendChild(back);
+
+  const list = document.createElement('div');
+  list.className = 'list';
+  s.phrases.forEach(p => list.appendChild(phraseCard(p, false)));
+  c.appendChild(list);
+}
+
+function renderSearch(q) {
+  const results = ALL.filter(p => p.he.includes(q));
+  document.getElementById('resultsBar').textContent =
+    results.length ? `${results.length} תוצאות` : 'לא נמצא';
+
+  const c = document.getElementById('mainContent');
+  c.innerHTML = '';
+
+  if (results.length === 0) {
+    c.innerHTML = `<div class="empty"><div class="icon">🔍</div><p>לא נמצאו משפטים עם "<strong>${q}</strong>"</p></div>`;
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'list';
+  results.forEach(p => list.appendChild(phraseCard(p, true)));
+  c.appendChild(list);
+}
+
+// ═══════════════════════════════════════
+// SEARCH INPUT
+// ═══════════════════════════════════════
+const searchEl  = document.getElementById('search');
+const clearBtn  = document.getElementById('clearBtn');
+
+searchEl.addEventListener('input', () => {
+  const q = searchEl.value.trim();
+  clearBtn.style.display = q ? 'block' : 'none';
+  if (q.length === 0) {
+    activeSection ? renderSection(activeSection) : renderHome();
+  } else {
+    renderSearch(q);
+  }
+});
+
+function clearSearch() {
+  searchEl.value = '';
+  clearBtn.style.display = 'none';
+  searchEl.focus();
+  activeSection ? renderSection(activeSection) : renderHome();
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RV Test</title>
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
+<style>
+  body { font-family: Arial; padding: 24px; background: #0D1F2D; color: white; }
+  button { display: block; width: 100%; padding: 18px; margin: 10px 0;
+           font-size: 17px; border: none; border-radius: 10px;
+           background: #C8102E; color: white; cursor: pointer; }
+  #log { background: #1A3346; padding: 14px; border-radius: 8px;
+         font-size: 13px; white-space: pre-wrap; min-height: 80px;
+         margin-top: 12px; direction: ltr; text-align: left; color: #8AAABB; }
+</style>
+</head>
+<body>
+<h2>בדיקת responsiveVoice</h2>
+<button onclick="test()">🔊 השמע ערבית</button>
+<div id="log">ממתין...</div>
+<script>
+function log(m) { document.getElementById('log').textContent += m + '\n'; }
+function test() {
+  document.getElementById('log').textContent = '';
+  log('responsiveVoice: ' + typeof responsiveVoice);
+  log('speaking...');
+  responsiveVoice.speak(
+    'وين إنت موجود هلق؟ شو صار؟',
+    'Arabic Male',
+    {
+      onstart:  () => log('✓ התחיל'),
+      onend:    () => log('✓ הסתיים'),
+      onerror:  () => log('❌ שגיאה')
+    }
+  );
+}
+</script>
+</body>
+</html>

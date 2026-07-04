@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTS Test — HTTPS</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 24px; background: #0D1F2D; color: white; }
+  button { display: block; width: 100%; padding: 18px; margin: 10px 0;
+           font-size: 17px; border: none; border-radius: 10px;
+           background: #C8102E; color: white; cursor: pointer; }
+  #log { background: #1A3346; padding: 14px; border-radius: 8px;
+         font-size: 13px; white-space: pre-wrap; min-height: 100px;
+         margin-top: 12px; direction: ltr; text-align: left; color: #8AAABB; }
+</style>
+</head>
+<body>
+<h2>בדיקת TTS מ-HTTPS</h2>
+<button onclick="test1()">בדיקה 1 — Web Speech API</button>
+<button onclick="test2()">בדיקה 2 — ערבית (مرحبا)</button>
+<div id="log">ממתין...</div>
+<script>
+function log(m) { document.getElementById('log').textContent += m + '\n'; }
+function clear() { document.getElementById('log').textContent = ''; }
+
+function test1() {
+  clear();
+  log('speechSynthesis: ' + typeof speechSynthesis);
+  if (typeof speechSynthesis === 'undefined') { log('❌ לא נתמך'); return; }
+  const voices = speechSynthesis.getVoices();
+  log('קולות זמינים: ' + voices.length);
+  voices.filter(v => v.lang.startsWith('ar')).forEach(v =>
+    log('  ✓ ' + v.name + ' / ' + v.lang));
+  if (!voices.find(v => v.lang.startsWith('ar')))
+    log('  ⚠️ אין קול ערבי — ממתין onvoiceschanged...');
+  speechSynthesis.onvoiceschanged = () => {
+    const v2 = speechSynthesis.getVoices().filter(v => v.lang.startsWith('ar'));
+    log('onvoiceschanged: ' + v2.length + ' קולות ערביים');
+    v2.forEach(v => log('  ✓ ' + v.name + ' / ' + v.lang));
+  };
+}
+
+function test2() {
+  clear();
+  if (typeof speechSynthesis === 'undefined') { log('❌ לא נתמך'); return; }
+  speechSynthesis.cancel();
+  const voices = speechSynthesis.getVoices();
+  const ar = voices.find(v => v.lang.startsWith('ar'));
+  log('קול: ' + (ar ? ar.name + ' / ' + ar.lang : 'ברירת מחדל ar'));
+  const u = new SpeechSynthesisUtterance('مرحبا، كيف حالك اليوم');
+  if (ar) { u.voice = ar; u.lang = ar.lang; } else { u.lang = 'ar'; }
+  u.rate = 0.85;
+  u.onstart = () => log('✓ מתחיל...');
+  u.onend   = () => log('✓ הסתיים!');
+  u.onerror = e => log('❌ שגיאה: ' + e.error);
+  speechSynthesis.speak(u);
+  log('speak() נשלח');
+}
+</script>
+</body>
+</html>
